@@ -3,97 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinship - Social Map</title>
+    <title>Kinship - Live Social Map & Meetups</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 0; }
-        .slide-panel { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .leaflet-default-icon-path { background-image: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .map-bg {
+            background-color: #1e1b18;
+            background-image: 
+                radial-gradient(#ea580c 0.75px, transparent 0.75px), 
+                radial-gradient(#ea580c 0.75px, #1e1b18 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+        .glass-panel {
+            background: rgba(30, 27, 24, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .character-glow {
+            filter: drop-shadow(0 0 12px rgba(234, 88, 12, 0.6));
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 0.2; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-animation {
+            animation: pulse-ring 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
     </style>
 </head>
-<body class="relative w-screen h-screen overflow-hidden bg-orange-50">
+<body class="w-screen h-screen overflow-hidden map-bg text-white relative select-none flex">
 
-    <!-- The Map Container -->
-    <div id="map"></div>
-
-    <!-- Top Floating Header -->
-    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md pointer-events-auto">
-        <div class="bg-white/80 backdrop-blur-md border border-white/60 px-5 py-3 rounded-2xl shadow-xl flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white font-bold shadow-md shadow-orange-500/20 text-lg" id="headerEmoji">
-                    🚲
+    <!-- SIDEBAR CONTROL PANEL -->
+    <div class="w-96 h-full glass-panel z-30 flex flex-col justify-between p-6 border-r border-white/10 shadow-2xl">
+        <div>
+            <!-- Brand Header -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-2xl font-black shadow-lg shadow-orange-600/30">
+                    K
                 </div>
                 <div>
-                    <h1 class="text-sm font-bold text-gray-800" id="headerTitle">Cycling to Prince's Island</h1>
-                    <p class="text-xs text-orange-600 font-medium" id="headerSub">Pathways • 2 friends riding</p>
+                    <h1 class="text-lg font-bold tracking-tight">Kinship Live</h1>
+                    <p class="text-xs text-orange-400 font-medium">Contextual Social Mapping</p>
                 </div>
             </div>
-            <button onclick="toggleList()" class="text-xs font-semibold bg-orange-100 text-orange-700 px-3 py-1.5 rounded-xl hover:bg-orange-200 transition-colors">
-                🛒 List
-            </button>
+
+            <!-- Active Meetup Card -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 px-2.5 py-1 rounded-full">Active Meetup</span>
+                    <span class="text-xs text-gray-400">Stephen Ave</span>
+                </div>
+                <h2 class="text-sm font-bold text-gray-100">Phil & Sebastian Coffee Run</h2>
+                <p class="text-xs text-gray-400 mt-1">3 friends converging • ETA 4 mins</p>
+            </div>
+
+            <!-- Activity Switcher -->
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Select Active Activity</h3>
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="setActivity('bike', '🚲', 'Cycling Tour', 'Prince\'s Island Pathways', '25%', '30%')" id="btn-bike" class="flex items-center gap-2 p-3 rounded-xl bg-orange-600 text-white font-semibold text-xs transition-all shadow-md shadow-orange-600/20">
+                    <span class="text-base">🚲</span> Cycling
+                </button>
+                <button onclick="setActivity('coffee', '☕', 'Cafe Meetup', 'Stephen Avenue', '15%', '70%')" id="btn-coffee" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">☕</span> Coffee
+                </button>
+                <button onclick="setActivity('soccer', '⚽', 'Turf Soccer', 'Stampede Park Turf', '80%', '20%')" id="btn-soccer" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">⚽</span> Soccer
+                </button>
+                <button onclick="setActivity('skate', '🛹', 'Skate Session', 'Shaw Millennium Park', '70%', '80%')" id="btn-skate" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">🛹</span> Skating
+                </button>
+            </div>
+
+            <!-- Checklist Section -->
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Shared Objectives</h3>
+                <span class="text-[10px] text-orange-400 font-semibold bg-orange-500/10 px-2 py-0.5 rounded">1/3 Done</span>
+            </div>
+            <div class="space-y-2.5" id="taskList">
+                <!-- Injected via JS -->
+            </div>
         </div>
-    </div>
 
-    <!-- Activity Selector Bar -->
-    <div class="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md flex gap-2 overflow-x-auto pb-2 pointer-events-auto">
-        <button onclick="switchActivity('bike', 51.0550, -114.0750, '🚲', 'Cycling to Prince\'s Island', 'Pathways • 2 riders')" class="px-3 py-1.5 bg-white/90 backdrop-blur-md border border-orange-200 rounded-xl text-xs font-semibold text-gray-700 shadow-sm hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap">
-            🚲 Cycling
-        </button>
-        <button onclick="switchActivity('coffee', 51.0500, -114.0850, '☕', 'Coffee & Pastries', 'Stephen Avenue • 3 people')" class="px-3 py-1.5 bg-white/90 backdrop-blur-md border border-orange-200 rounded-xl text-xs font-semibold text-gray-700 shadow-sm hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap">
-            ☕ Cafe Meetup
-        </button>
-        <button onclick="switchActivity('soccer', 51.0380, -114.0600, '⚽', 'Turf Soccer Match', 'Stampede Park • 5 players')" class="px-3 py-1.5 bg-white/90 backdrop-blur-md border border-orange-200 rounded-xl text-xs font-semibold text-gray-700 shadow-sm hover:bg-orange-500 hover:text-white transition-all whitespace-nowrap">
-            ⚽ Soccer
+        <!-- Simulation Action Button -->
+        <button onclick="toggleSimulation()" id="simBtn" class="w-full py-4 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold rounded-2xl shadow-xl shadow-orange-600/30 hover:opacity-95 transition-all transform active:scale-95 text-sm flex items-center justify-center gap-2">
+            <span>⚡</span> Start Movement Simulation
         </button>
     </div>
 
-    <!-- Bottom Floating Action Bar -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md flex flex-col gap-3 pointer-events-auto">
-        <button onclick="toggleDemo()" id="actionBtn" class="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-2xl shadow-xl shadow-orange-500/30 hover:opacity-95 transition-all transform active:scale-95">
-            Simulate Movement
-        </button>
-    </div>
+    <!-- MAIN MAP CANVAS AREA -->
+    <div class="flex-1 h-full relative overflow-hidden" id="mapCanvas">
+        
+        <!-- Vector Map Grid Roads & Paths -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40">
+            <path d="M 100 200 Q 400 150, 650 400 T 1100 600" fill="none" stroke="#ea580c" stroke-width="4" stroke-dasharray="10 6" />
+            <path d="M 300 700 Q 500 450, 650 400" fill="none" stroke="#f97316" stroke-width="6" />
+            <path d="M 750 100 Q 600 250, 650 400" fill="none" stroke="#ea580c" stroke-width="4" />
+        </svg>
 
-    <!-- Slide-Up Task Drawer -->
-    <div id="listDrawer" class="absolute bottom-0 left-0 w-full h-[55vh] bg-white/90 backdrop-blur-2xl border-t border-white/60 shadow-[0_-20px_50px_rgba(0,0,0,0.15)] rounded-t-[32px] z-50 flex flex-col slide-panel transform translate-y-full pointer-events-auto">
-        <div class="flex flex-col items-center p-5 border-b border-gray-100 relative">
-            <div class="w-12 h-1.5 bg-gray-300 rounded-full mb-3 cursor-pointer" onclick="toggleList()"></div>
-            <h2 class="text-xl font-bold text-gray-800">Event Checklist</h2>
-            <p class="text-xs text-gray-400 mt-0.5">Tap items to check them off</p>
-            <button onclick="toggleList()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center">
-                ✕
-            </button>
+        <!-- Destination Landmark -->
+        <div class="absolute top-[40%] left-[60%] transform -translate-x-1/2 -translate-y-1/2 z-25 flex flex-col items-center">
+            <div class="relative flex items-center justify-center w-20 h-20">
+                <div class="absolute w-full h-full bg-orange-500 rounded-full pulse-animation"></div>
+                <div class="relative w-12 h-12 bg-gradient-to-tr from-orange-600 to-amber-400 rounded-2xl shadow-2xl flex items-center justify-center text-xl font-bold border-2 border-white/40">
+                    📍
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-1.5 rounded-full shadow-2xl border border-white/20 mt-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-bold tracking-wide text-gray-200">Phil & Sebastian Destination</span>
+            </div>
         </div>
-        <div class="flex-1 overflow-y-auto p-6 space-y-3" id="taskList"></div>
-    </div>
 
-    <script>
-        const destinationCoords = [51.0447, -114.0719];
-        const map = L.map('map', { zoomControl: false }).setView(destinationCoords, 14);
+        <!-- Interactive Character Marker -->
+        <div id="characterMarker" class="absolute top-[30%] left-[25%] transform -translate-x-1/2 -translate-y-1/2 z-30 transition-all duration-300 flex flex-col items-center">
+            <!-- Speech / Status Bubble -->
+            <div class="glass-panel px-3 py-1 rounded-xl text-[11px] font-bold text-orange-300 shadow-xl mb-2 border border-orange-500/30 flex items-center gap-1.5 whitespace-nowrap">
+                <span id="charStatusEmoji">🚲</span> <span id="charStatusText">Daelin • En route</span>
+            </div>
+            <!-- Character Avatar Disk -->
+            <div class="relative w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-orange-600 to-amber-400 shadow-2xl character-glow">
+                <div class="w-full h-full rounded-full bg-gray-900 overflow-hidden border-2 border-white/80 flex items-center justify-center text-2xl" id="charMainEmoji">
+                    🚲
+                </div>
+            </div>
+        </div>
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd',
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
+        <!-- Secondary Friend Marker (Adds depth) -->
+        <div class="absolute top-[65%] left-[45%] z-20 flex flex-col items-center opacity-80">
+            <div class="bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-lg text-[10px] font-semibold text-gray-300 mb-1">
+                Sarah • Arrived
+            </div>
+            <div class="w-12 h-12 rounded-full p-0.5 bg-gray-700 shadow-xl flex items-center justify-center text-xl border border-white/20">
+                ☕
+            </div>
+        </div>
 
-        // Destination Marker
-        const destHtml = `
-            <div class="relative flex items-center justify-center w-14 h-14">
-                <div class="absolute w-full h-full bg-orange-400 rounded-full animate-ping opacity-50"></div>
-                <div class="relative w-8 h-8 bg-gradient-to-tr from-orange-600 to-amber-500 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white text-sm font-bold">📍</div>
-            </div>`;
-        L.marker(destinationCoords, { icon: L.divIcon({ html: destHtml, className: '', iconSize: [56, 56], iconAnchor: [28, 28] }) }).addTo(map);
-
-        // Activity Character Marker
-        let currentStart = [51.0550, -114.0750];
-        let currentLat = currentStart[0];
-        let currentLng
+        <!-- Top Right Status Overlay -->
+        <div class="absolute top-6 right-6 glass-panel px
