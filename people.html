@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Using OpenLayers with Vite</title>
+    <!-- 1. Bootstrap 5 CSS 放在這裡 -->
+    <!-- 這個才是控制 Toggle 會動的 JavaScript！ -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="script/people.js"></script>
+</head>
+
+<body>
+
+    <!-- 2. UI 結構放在這裡 (對應圖片的佈局) -->
+
+    <!-- 頂部導覽列 (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">CampusMap</a>
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Map</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="people.html">People</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="tasks.html">Tasks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="messages.html">Messages</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主要內容區：flex-grow-1 讓這個區塊填滿 Navbar 剩下的高度 -->
+    <div class="container-fluid flex-grow-1 overflow-hidden">
+        <div class="row h-100">
+
+            <!-- 左側邊欄：h-100, overflow-y-auto 讓列表可以獨立滾動 -->
+            <div class="col-md-4 col-lg-3 h-100 overflow-y-auto bg-light border-end p-3 d-flex flex-column">
+
+                <!-- 1. Add Friend 按鈕 -->
+                <button class="btn btn-primary w-100 mb-3" onclick="showView('view-add-friend')">
+                    + Add Friend
+                </button>
+
+                <!-- 2. Friend Search 搜尋框 -->
+                <div class="mb-3">
+                    <input type="text" class="form-control" placeholder="Search friends...">
+                </div>
+
+                <!-- 3 & 4. 上線 (Online) 區塊 -->
+                <div class="mb-2">
+                    <!-- 你的按鈕 -->
+                    <button
+                        class="btn btn-light w-100 text-start d-flex justify-content-between align-items-center fw-bold"
+                        type="button" onclick="toggleOnlineList()">
+                        <span>🟢 Online (2)</span>
+                        <small>▼</small>
+                    </button>
+
+                    <div class="mt-2" id="onlineList" style="display: block;">
+                        <div class="list-group list-group-flush">
+                            <!-- 改用 <button> 加上 list-group-item-action，BS5 自動給你 hover 反饋跟手型游標 -->
+                            <button
+                                class="list-group-item list-group-item-action d-flex align-items-center bg-transparent border-0"
+                                onclick="showFriendDetail('Alice Wang', 'Near University of Calgary', 'https://ui-avatars.com/api/?name=Alice+Wang&background=random', 'Software Engineering, Year 3')">
+                                <img src="https://ui-avatars.com/api/?name=Alice+Wang&background=random"
+                                    class="rounded-circle me-3" width="40" height="40" alt="Avatar">
+                                <div>
+                                    <div class="text-dark fw-medium">Alice Wang</div>
+                                    <div class="text-secondary small">Near University of Calgary</div>
+                                </div>
+                            </button>
+                            <button
+                                class="list-group-item list-group-item-action d-flex align-items-center bg-transparent border-0"
+                                onclick="showFriendDetail('Bob Chen', 'Downtown Central Library', 'https://ui-avatars.com/api/?name=Bob+Chen&background=random', 'Computer Science, Year 4')">
+                                <img src="https://ui-avatars.com/api/?name=Bob+Chen&background=random"
+                                    class="rounded-circle me-3" width="40" height="40" alt="Avatar">
+                                <div>
+                                    <div class="text-dark fw-medium">Bob Chen</div>
+                                    <div class="text-secondary small">Downtown Central Library</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 下線 (Offline) 區塊 -->
+                <div class="mb-auto"> <!-- mb-auto 把下方的隱私權推到底部 -->
+                    <button
+                        class="btn btn-light w-100 text-start d-flex justify-content-between align-items-center fw-bold text-muted"
+                        type="button" onclick="toggleOfflineList()">
+                        <span>⚪ Offline (1)</span>
+                        <small>▼</small>
+                    </button>
+
+
+                    <div class="collapse mt-2" id="offlineList" style="display: block;">
+                        <div class="list-group list-group-flush opacity-75">
+                            <button
+                                class="list-group-item list-group-item-action d-flex align-items-center bg-transparent border-0"
+                                onclick="showFriendDetail('Cathy Lin', 'Last seen 2 hours ago', 'https://ui-avatars.com/api/?name=Cathy+Lin&background=cccccc', 'Business, Year 2')">
+                                <img src="https://ui-avatars.com/api/?name=Cathy+Lin&background=cccccc"
+                                    class="rounded-circle me-3" width="40" height="40" alt="Avatar">
+                                <div>
+                                    <div class="text-dark fw-medium">Cathy Lin</div>
+                                    <div class="text-secondary small">Last seen 2 hours ago</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. 隱私權等備註欄 (置底) -->
+                <div class="mt-4 pt-3 border-top">
+                    <a href="#" class="text-decoration-none text-muted small" onclick="showView('view-privacy')">Privacy
+                        Policy & Terms</a>
+                </div>
+
+            </div>
+
+            <!-- 7. 右側主顯示區：加入 h-100, overflow-y-auto 跟 p-4 內距 -->
+            <div class="col-md-8 col-lg-9 h-100 overflow-y-auto bg-white p-4">
+
+                <!-- 預設歡迎畫面 (移除 d-none 讓它預設顯示) -->
+                <div id="view-default" class="detail-view text-center mt-5">
+                    <h3 class="text-muted">Select a friend or add a new one</h3>
+                </div>
+
+                <!-- 視圖：新增好友 (預設加上 d-none 隱藏) -->
+                <div id="view-add-friend" class="detail-view d-none">
+                    <h3>Add a New Friend</h3>
+                    <p class="text-muted">Enter your friend's email address to send an invitation.</p>
+                    <div class="card p-4 shadow-sm" style="max-width: 500px;">
+                        <div class="mb-3">
+                            <label class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="friendEmail" placeholder="friend@example.com">
+                        </div>
+                        <button class="btn btn-primary" onclick="sendInvite()">Send Invite</button>
+
+                        <div id="invite-status" class="mt-3 alert d-none" role="alert"></div>
+                    </div>
+                </div>
+
+                <!-- 視圖：好友詳細資訊 (預設加上 d-none 隱藏) -->
+                <div id="view-friend-detail" class="detail-view d-none">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center p-5">
+                            <img id="detail-avatar" src="" class="rounded-circle mb-3 shadow" width="120" height="120"
+                                alt="Avatar">
+                            <h2 id="detail-name" class="fw-bold mb-1">Name</h2>
+                            <p id="detail-location" class="text-muted mb-4">Location</p>
+
+                            <div class="bg-light p-3 rounded text-start mx-auto" style="max-width: 400px;">
+                                <h6 class="fw-bold border-bottom pb-2">About</h6>
+                                <p id="detail-about" class="mb-1 text-secondary">Student Info</p>
+                                <p class="mb-0 text-secondary">Joined: Sept 2023</p>
+                            </div>
+
+                            <div class="mt-4">
+                                <button class="btn btn-outline-primary me-2">Send Message</button>
+                                <button class="btn btn-outline-danger">Remove Friend</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 視圖：隱私權政策 (預設加上 d-none 隱藏) -->
+                <div id="view-privacy" class="detail-view d-none">
+                    <h3>Privacy Policy</h3>
+                    <hr>
+                    <p>Your location data is only shared with friends you explicitly accept.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- 頁面邏輯腳本 -->
+    <script>
+        // 利用切換 Bootstrap 的 d-none 類別來控制顯示/隱藏
+        function showView(viewId) {
+            // 將所有標記為 detail-view 的區塊加上 d-none
+            document.querySelectorAll('.detail-view').forEach(function (el) {
+                el.classList.add('d-none');
+            });
+            // 把被選中的區塊移除 d-none 顯示出來
+            document.getElementById(viewId).classList.remove('d-none');
+        }
+
+        // 當點擊好友清單時，更新資訊
+        function showFriendDetail(name, location, avatarUrl, about) {
+            document.getElementById('detail-name').innerText = name;
+            document.getElementById('detail-location').innerText = location;
+            document.getElementById('detail-avatar').src = avatarUrl;
+            document.getElementById('detail-about').innerText = about;
+
+            showView('view-friend-detail');
+        }
+
+        // 模擬發送邀請
+        function sendInvite() {
+            const email = document.getElementById('friendEmail').value;
+            const statusDiv = document.getElementById('invite-status');
+
+            if (email) {
+                // 替換 class 顯示黃色警告框
+                statusDiv.className = "mt-3 alert alert-warning d-block";
+                statusDiv.innerText = `Invitation sent to ${email}. Status: Pending...`;
+                document.getElementById('friendEmail').value = '';
+            } else {
+                // 顯示紅色錯誤框
+                statusDiv.className = "mt-3 alert alert-danger d-block";
+                statusDiv.innerText = "Please enter an email address.";
+            }
+        }
+    </script>
+
+</body>
