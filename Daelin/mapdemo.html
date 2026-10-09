@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinship - Mock Map & Character Test</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .map-bg {
+            background-color: #1e1b18;
+            background-image: 
+                radial-gradient(#ea580c 0.75px, transparent 0.75px), 
+                radial-gradient(#ea580c 0.75px, #1e1b18 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+        .glass-panel {
+            background: rgba(30, 27, 24, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .character-glow {
+            filter: drop-shadow(0 0 12px rgba(234, 88, 12, 0.6));
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 0.2; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-animation {
+            animation: pulse-ring 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+    </style>
+</head>
+<body class="w-screen h-screen overflow-hidden map-bg text-white relative select-none flex">
+
+    <!-- SIDEBAR CONTROL PANEL -->
+    <div class="w-96 h-full glass-panel z-30 flex flex-col justify-between p-6 border-r border-white/10 shadow-2xl">
+        <div>
+            <!-- Brand Header -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-2xl font-black shadow-lg shadow-orange-600/30">
+                    K
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">Kinship Preview</h1>
+                    <p class="text-xs text-orange-400 font-medium">Character Component Test</p>
+                </div>
+            </div>
+
+            <!-- Activity Switcher -->
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Test Activity Icons</h3>
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="switchTestActivity('🚲', 'Cycling Tour', '25', '30')" class="flex items-center gap-2 p-3 rounded-xl bg-orange-600 text-white font-semibold text-xs transition-all shadow-md">
+                    <span class="text-base">🚲</span> Cycling
+                </button>
+                <button onclick="switchTestActivity('☕', 'Cafe Meetup', '15', '70')" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">☕</span> Coffee
+                </button>
+                <button onclick="switchTestActivity('⚽', 'Turf Soccer', '80', '20')" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">⚽</span> Soccer
+                </button>
+                <button onclick="switchTestActivity('🛹', 'Skate Session', '70', '80')" class="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all border border-white/5">
+                    <span class="text-base">🛹</span> Skating
+                </button>
+            </div>
+        </div>
+
+        <!-- Simulation Action Button -->
+        <button onclick="runSimulation()" id="simBtn" class="w-full py-4 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold rounded-2xl shadow-xl shadow-orange-600/30 hover:opacity-95 transition-all text-sm flex items-center justify-center gap-2">
+            <span>⚡</span> Simulate Movement to Pin
+        </button>
+    </div>
+
+    <!-- MAIN MAP CANVAS AREA -->
+    <div class="flex-1 h-full relative overflow-hidden">
+        
+        <!-- Vector Map Grid Roads -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40">
+            <path d="M 100 200 Q 400 150, 650 400 T 1100 600" fill="none" stroke="#ea580c" stroke-width="4" stroke-dasharray="10 6" />
+            <path d="M 300 700 Q 500 450, 650 400" fill="none" stroke="#f97316" stroke-width="6" />
+        </svg>
+
+        <!-- Destination Landmark Pin -->
+        <div class="absolute top-[40%] left-[60%] transform -translate-x-1/2 -translate-y-1/2 z-25 flex flex-col items-center">
+            <div class="relative flex items-center justify-center w-20 h-20">
+                <div class="absolute w-full h-full bg-orange-500 rounded-full pulse-animation"></div>
+                <div class="relative w-12 h-12 bg-gradient-to-tr from-orange-600 to-amber-400 rounded-2xl shadow-2xl flex items-center justify-center text-xl font-bold border-2 border-white/40">
+                    📍
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-1.5 rounded-full shadow-2xl border border-white/20 mt-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-bold tracking-wide text-gray-200">Destination Target</span>
+            </div>
+        </div>
+
+        <!-- Character Container (Managed by character.js) -->
+        <div id="characterContainer"></div>
+
+    </div>
+
+    <!-- Include your Character Component script -->
+    <script src="character.js"></script>
+    <script>
+        let isSimulating = false;
+        let simInterval = null;
+        let startX = 25;
+        let startY = 30;
+
+        function switchTestActivity(emoji, title, x, y) {
+            startX = parseInt(x);
+            startY = parseInt(y);
+            
+            if (window.myCharacter) {
+                myCharacter.setActivity(emoji, title, 'En route');
+                myCharacter.moveTo(startX, startY);
+            }
+            if (isSimulating) runSimulation();
+        }
+
+        function runSimulation() {
+            isSimulating = !isSimulating;
+            const btn = document.getElementById('simBtn');
+
+            if (isSimulating) {
+                btn.innerHTML = "<span>⏹</span> Stop Simulation";
+                btn.className = "w-full py-4 bg-red-500/20 border border-red-500/40 text-red-300 font-bold rounded-2xl shadow-xl transition-all text-sm flex items-center justify-center gap-2";
+
+                let curX = startX;
+                let curY = startY;
+
+                simInterval = setInterval(() => {
+                    curX += (60 - curX) * 0.08;
+                    curY += (40 - curY) * 0.08;
+                    if (window.myCharacter) {
+                        myCharacter.moveTo(curX, curY);
+                    }
+                }, 50);
+            } else {
+                btn.innerHTML = "<span>⚡</span> Simulate Movement to Pin";
+                btn.className = "w-full py-4 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold rounded-2xl shadow-xl shadow-orange-600/30 hover:opacity-95 transition-all text-sm flex items-center justify-center gap-2";
+                clearInterval(simInterval);
+                if (window.myCharacter) {
+                    myCharacter.moveTo(startX, startY);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
