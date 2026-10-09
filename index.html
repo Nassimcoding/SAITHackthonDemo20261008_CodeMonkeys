@@ -88,7 +88,65 @@
     <title>FrendMap</title>
   </head>
   <body>
-    <div id="map"></div>
+
+    <!-- 頂部導覽列 (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">CampusMap</a>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="#">Map</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="people.html">People</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="tasks.html">Tasks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="messages.html">Messages</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- 主要版面區塊 (使用 Bootstrap Grid) -->
+    <div class="container-fluid app-container">
+      <div class="row vh-100">
+
+        <!-- 左側面板：人員清單 (People) -->
+        <div class="col-md-3 sidebar bg-light border-end p-3">
+          <h5>Online (12)</h5>
+          <!-- 這裡放置你的朋友列表 UI，例如 Bootstrap 的 List Group -->
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-transparent">Alice Wang</li>
+            <li class="list-group-item bg-transparent">Bob Chen</li>
+          </ul>
+        </div>
+
+        <!-- 中間面板：地圖區塊 -->
+        <div class="col-md-6 p-0" style="position: relative;">
+          <!-- 你的 OpenLayers 地圖容器 -->
+          <div id="map"></div>
+        </div>
+
+        <!-- 右側面板：狀態與詳細資訊 (Stats & Selected Student) -->
+        <div class="col-md-3 sidebar bg-light border-start p-3">
+          <h5>Selected Student</h5>
+          <!-- 這裡放置右側資訊 UI -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title">Alice Wang</h6>
+              <p class="card-text text-muted">Online • 1 min ago</p>
+            </div>
+          </div>
+
+          <h5>Quick Stats</h5>
+          <!-- 這裡放置統計數據卡片 -->
+        </div>
+
+      </div>
+    </div>
 
     <div class="modal fade" id="myModal" tabindex="-1">
       <div class="modal-dialog">
